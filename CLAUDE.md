@@ -51,6 +51,17 @@ Two core files at the repo root:
 
 All settings are hardcoded (`MIN_DATE = "2014-01-01"`, `NEUTRAL = True`). There is no sidebar. `@st.cache_data` with 1-hour TTL wraps model fitting and all simulations.
 
+## Refreshing the Model Cache
+
+`app.py` loads pre-computed model parameters from `model_cache.json` on startup instead of fetching data and fitting the model live (eliminates the cold-start delay on Streamlit Cloud). Run this after new match results are available:
+
+```bash
+python precompute.py
+git add model_cache.json && git commit -m "Refresh model cache" && git push
+```
+
+Streamlit Cloud redeploys automatically on push. If `model_cache.json` is missing, the app falls back to live fitting.
+
 ## Data Flow
 
 ```
