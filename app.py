@@ -2,9 +2,12 @@
 World Cup 2026 SPI Predictor — Streamlit app
 Dixon-Coles Poisson model · time-decay & tournament weighting
 """
+import json
+import os
 import streamlit as st
 import streamlit.components.v1 as components
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy.special import gammaln
@@ -293,8 +296,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Model ──────────────────────────────────────────────────────────────────────
-@st.cache_data(show_spinner="Fitting model…", ttl=3600)
+@st.cache_data(show_spinner="Loading model…", ttl=3600)
 def get_model(min_date):
+    cache_path = os.path.join(os.path.dirname(__file__), "model_cache.json")
+    if os.path.exists(cache_path):
+        with open(cache_path) as f:
+            c = json.load(f)
+        ratings = pd.DataFrame(c["ratings"]).set_index("rank")
+        ratings.index.name = None
+        return (
+            ratings,
+            c["home_adv"],
+            c["rho"],
+            c["valid_teams"],
+            np.array(c["params"]),
+        )
     df = load_data(min_date=min_date)
     return fit_model(df)
 
