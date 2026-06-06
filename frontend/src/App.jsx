@@ -36,7 +36,6 @@ export default function App() {
         <div className="app-logo">
           FIFA <span>World Cup</span> 2026 <span style={{fontSize:11,color:'rgba(255,255,255,.35)',fontWeight:400,letterSpacing:0}}>· Predictor</span>
         </div>
-        <div className="app-sub">Dixon-Coles Poisson · time-decay · martj42/international_results</div>
       </header>
 
       <div className="tab-bar">
@@ -63,6 +62,11 @@ export default function App() {
           </>
         )}
       </div>
+
+      <footer className="app-footer">
+        <span>Dixon-Coles Poisson · time-decay · data: <a href="https://github.com/martj42/international_results" target="_blank" rel="noreferrer">martj42/international_results</a></span>
+        <span>Built by <a href="https://github.com/c2daw" target="_blank" rel="noreferrer">@c2daw</a> · <a href="https://github.com/c2daw/wc2026_predictor" target="_blank" rel="noreferrer">Source</a></span>
+      </footer>
     </div>
   )
 }

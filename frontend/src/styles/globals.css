@@ -389,6 +389,28 @@ body {
 .bkt-legend { display: flex; gap: 16px; align-items: center; margin-top: 10px; font-size: 10px; color: #6B7280; flex-wrap: wrap; }
 .bl-item { display: flex; align-items: center; gap: 6px; }
 
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  margin-top: 8px;
+  border-top: 1px solid #E5E7EB;
+  font-size: 11px;
+  color: #9CA3AF;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.app-footer a {
+  color: #6B7280;
+  text-decoration: none;
+}
+.app-footer a:hover {
+  color: #19237C;
+  text-decoration: underline;
+}
+
 /* ── Loading ─────────────────────────────────────────────────────────────── */
 .loading {
   display: flex;
