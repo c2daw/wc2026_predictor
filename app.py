@@ -347,13 +347,15 @@ def _ko_prob(a, b, _vt, _p):
 
 @st.cache_data(show_spinner="Building bracket…", ttl=3600)
 def get_bracket(_gt, _vt, _p):
-    def top(df, col): return df.sort_values(col, ascending=False).iloc[0]["Team"]
     pos = {}
     thirds_raw = []
     for letter, df in _gt.items():
-        pos[f"{letter}1"] = top(df, "P(1st)")
-        pos[f"{letter}2"] = top(df, "P(2nd)")
-        r3 = df.iloc[2]  # 3rd-placed team by xPts
+        p1 = df.sort_values("P(1st)", ascending=False).iloc[0]["Team"]
+        p2 = df[df["Team"] != p1].sort_values("P(2nd)", ascending=False).iloc[0]["Team"]
+        pos[f"{letter}1"] = p1
+        pos[f"{letter}2"] = p2
+        # 3rd placer: highest xPts among teams not already used as 1st or 2nd
+        r3 = df[~df["Team"].isin([p1, p2])].iloc[0]
         thirds_raw.append((letter, r3["Team"], float(r3["xPts"]), float(r3["xGD"])))
     thirds_raw.sort(key=lambda x: (x[2], x[3]), reverse=True)
     t3_adv = thirds_raw[:8]  # 8 best 3rd-place teams
