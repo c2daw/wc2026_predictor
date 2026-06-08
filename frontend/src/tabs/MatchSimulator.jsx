@@ -3,6 +3,70 @@ import { predictMatch, collapseMatrix, topScorelines } from '../utils/poisson.js
 import { getCellColor, gradFill, NAVY, RED, BLUE2 } from '../utils/colors.js'
 import { tmeta, tshort } from '../utils/teamMeta.js'
 
+const STRENGTH_RANGE = 0.9  // display scale: ±0.9 covers nearly all teams
+
+function StrengthBar({ value, color }) {
+  const pct = Math.min(Math.max(Math.abs(value) / STRENGTH_RANGE * 50, 0), 50)
+  return (
+    <div style={{position:'relative', height:4, background:'#E5E7EB', borderRadius:2, margin:'2px 0 5px'}}>
+      {value >= 0
+        ? <div style={{position:'absolute', left:'50%', width:`${pct}%`, height:'100%', background:color, borderRadius:2}} />
+        : <div style={{position:'absolute', right:'50%', width:`${pct}%`, height:'100%', background:color, borderRadius:2}} />
+      }
+      <div style={{position:'absolute', left:'calc(50% - 0.5px)', top:-1, width:1, height:6, background:'#D1D5DB'}} />
+    </div>
+  )
+}
+
+function StrengthPanel({ teamA, teamB, modelData }) {
+  const n = modelData.valid_teams.length
+  const ai = modelData.valid_teams.indexOf(teamA)
+  const bi = modelData.valid_teams.indexOf(teamB)
+  const atkA = modelData.params[ai],       defA = modelData.params[n + ai]
+  const atkB = modelData.params[bi],       defB = modelData.params[n + bi]
+  const [flagA, codeA] = tmeta(teamA)
+  const [flagB, codeB] = tmeta(teamB)
+
+  function Row({ label, value, color }) {
+    const pos = value >= 0
+    return (
+      <div>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', fontSize:9, marginBottom:1}}>
+          <span style={{color:'#9CA3AF', fontFamily:"'Barlow Condensed',sans-serif", letterSpacing:.5, textTransform:'uppercase'}}>{label}</span>
+          <span style={{fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:11, color: pos ? color : '#9CA3AF'}}>
+            {pos ? '+' : ''}{value.toFixed(3)}
+          </span>
+        </div>
+        <StrengthBar value={value} color={color} />
+      </div>
+    )
+  }
+
+  function Team({ flag, code, atk, def }) {
+    return (
+      <div>
+        <div style={{fontFamily:"'Barlow Condensed',sans-serif", fontWeight:700, fontSize:12, marginBottom:5, color:'#374151'}}>
+          {flag} {code}
+        </div>
+        <Row label="Attack"  value={atk} color={RED}   />
+        <Row label="Defense" value={def} color={BLUE2} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="panel">
+      <div className="ph">Team Strength</div>
+      <div className="pb">
+        <Team flag={flagA} code={codeA} atk={atkA} def={defA} />
+        <div className="sep" />
+        <Team flag={flagB} code={codeB} atk={atkB} def={defB} />
+        <div style={{fontSize:9, color:'#C4C9D4', marginTop:6, fontStyle:'italic'}}>0 = league avg · bars show ±0.9</div>
+      </div>
+    </div>
+  )
+}
+
 function HeatmapGrid({ sm, teamA, teamB, highlight }) {
   const nc = 6
   const labels = ['0', '1', '2', '3', '4', '5+']
@@ -200,6 +264,8 @@ export default function MatchSimulator({ modelData }) {
 
         {/* Right: stats */}
         <div>
+          <StrengthPanel teamA={safeA} teamB={safeB} modelData={modelData} />
+
           <div className="panel">
             <div className="ph">xG Breakdown</div>
             <div className="pb">
