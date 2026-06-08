@@ -3,12 +3,14 @@ import MatchSimulator from './tabs/MatchSimulator.jsx'
 import GroupStage from './tabs/GroupStage.jsx'
 import KOBracket from './tabs/KOBracket.jsx'
 import Backtest from './tabs/Backtest.jsx'
+import Timeline from './tabs/Timeline.jsx'
 
 const TABS = [
-  { id: 'match',  label: '🔮 Match Simulator' },
-  { id: 'groups', label: '🏆 Group Stage' },
-  { id: 'ko',     label: '🗓 KO Bracket' },
-  { id: 'bt',     label: '📈 Backtest' },
+  { id: 'match',    label: '🔮 Match Simulator' },
+  { id: 'groups',   label: '🏆 Group Stage' },
+  { id: 'ko',       label: '🗓 KO Bracket' },
+  { id: 'timeline', label: '📊 Timeline' },
+  { id: 'bt',       label: '📈 Backtest' },
 ]
 
 export default function App() {
@@ -16,6 +18,7 @@ export default function App() {
   const [modelData, setModelData] = useState(null)
   const [groupsData, setGroupsData] = useState(null)
   const [tournamentData, setTournamentData] = useState(null)
+  const [historyData, setHistoryData] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -28,6 +31,9 @@ export default function App() {
       setGroupsData(groups)
       setTournamentData(tournament)
     }).catch(e => setError(e.message))
+
+    // History loads separately — it's large and only needed for the Timeline tab
+    fetch('/data/history.json').then(r => r.json()).then(setHistoryData).catch(() => {})
   }, [])
 
   return (
@@ -55,10 +61,11 @@ export default function App() {
         {!error && !modelData && <div className="loading">Loading model…</div>}
         {!error && modelData && (
           <>
-            {activeTab === 'match'  && <MatchSimulator modelData={modelData} />}
-            {activeTab === 'groups' && <GroupStage groupsData={groupsData} modelData={modelData} />}
-            {activeTab === 'ko'     && <KOBracket tournamentData={tournamentData} />}
-            {activeTab === 'bt'     && <Backtest />}
+            {activeTab === 'match'    && <MatchSimulator modelData={modelData} />}
+            {activeTab === 'groups'   && <GroupStage groupsData={groupsData} modelData={modelData} />}
+            {activeTab === 'ko'       && <KOBracket tournamentData={tournamentData} />}
+            {activeTab === 'timeline' && <Timeline historyData={historyData} />}
+            {activeTab === 'bt'       && <Backtest />}
           </>
         )}
       </div>

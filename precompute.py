@@ -5,9 +5,10 @@ Saves model_cache.json (for Streamlit fallback) and frontend/public/data/*.
 import json
 import os
 import numpy as np
+import pandas as pd
 from datetime import datetime
 from scipy.special import gammaln
-from model import load_data, fit_model, simulate_group, simulate_tournament, WC2026_GROUPS
+from model import load_data, fit_model, simulate_group, simulate_tournament, WC2026_GROUPS, DECAY_DAYS
 
 MIN_DATE = "2014-01-01"
 
@@ -426,3 +427,46 @@ with open("frontend/public/data/tournament.json", "w") as f:
 print("  frontend/public/data/tournament.json")
 
 print(f"\nDone — {len(valid_teams)} teams, {len(advancing_thirds)} advancing thirds: {advancing_thirds}")
+
+# ── history.json ──────────────────────────────────────────────────────────────
+print("\nComputing historical ratings (semi-annual snapshots 2016–present)...")
+print("  This takes ~10 minutes — re-fits model at each snapshot.")
+
+# Load full data back to 2010 and keep only what fit_model needs + tourney_weight
+df_full = load_data(min_date="2010-01-01")
+df_base = df_full[["date","home_team","away_team","home_score","away_score","neutral","tourney_weight"]].copy()
+
+wc_team_list = sorted({t for g in WC2026_GROUPS.values() for t in g})
+snaps = pd.date_range("2016-01-01", pd.Timestamp("today"), freq="6MS")
+
+history_snaps = []
+history_teams = {t: {"spi": [], "attack": [], "defense": []} for t in wc_team_list}
+
+for i, snap in enumerate(snaps):
+    df_snap = df_base[df_base["date"] <= snap].copy()
+    df_snap["days_ago"] = (snap - df_snap["date"]).dt.days
+    df_snap["time_weight"] = np.exp(-np.log(2) * df_snap["days_ago"] / DECAY_DAYS)
+    df_snap["weight"] = df_snap["time_weight"] * df_snap["tourney_weight"]
+    try:
+        snap_ratings, _, _, _, _ = fit_model(df_snap)
+        snap_map = {row["team"]: row for _, row in snap_ratings.iterrows()}
+        for t in wc_team_list:
+            if t in snap_map:
+                r = snap_map[t]
+                history_teams[t]["spi"].append(round(float(r["spi"]), 2))
+                history_teams[t]["attack"].append(round(float(r["attack"]), 4))
+                history_teams[t]["defense"].append(round(float(r["defense"]), 4))
+            else:
+                for k in ("spi", "attack", "defense"):
+                    history_teams[t][k].append(None)
+    except Exception as e:
+        for t in wc_team_list:
+            for k in ("spi", "attack", "defense"):
+                history_teams[t][k].append(None)
+    history_snaps.append(snap.strftime("%Y-%m-%d"))
+    print(f"  [{i+1}/{len(snaps)}] {snap.date()}")
+
+history_data = {"snapshots": history_snaps, "teams": history_teams}
+with open("frontend/public/data/history.json", "w") as f:
+    json.dump(history_data, f)
+print("  frontend/public/data/history.json")
