@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import MatchSimulator from './tabs/MatchSimulator.jsx'
 import GroupStage from './tabs/GroupStage.jsx'
 import KOBracket from './tabs/KOBracket.jsx'
@@ -74,6 +75,7 @@ export default function App() {
         <span>Dixon-Coles Poisson · time-decay · data: <a href="https://github.com/martj42/international_results" target="_blank" rel="noreferrer">martj42/international_results</a></span>
         <span>Built by <a href="https://github.com/c2daw" target="_blank" rel="noreferrer">@c2daw</a> · <a href="https://github.com/c2daw/wc2026_predictor" target="_blank" rel="noreferrer">Source</a></span>
       </footer>
+      <Analytics />
     </div>
   )
 }
